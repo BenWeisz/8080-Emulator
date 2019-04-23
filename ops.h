@@ -91,14 +91,14 @@
 #define MOVDL  0x55
 #define MOVHL  0x65
 #define MOVML  0x75
-#define ADDH   0x85
-#define SUBH   0x95
-#define ANAH   0xA5
-#define ORAH   0xB5
-#define CNZ    0xC5
-#define CNC    0xD5
-#define CPO    0xE5
-#define CP     0xF5
+#define ADDL   0x85
+#define SUBL   0x95
+#define ANAL   0xA5
+#define ORAL   0xB5
+#define PUSHB  0xC5
+#define PUSHD  0xD5
+#define PUSHH  0xE5
+#define PUSHPSW 0xF5
 
 #define MVIB   0x06
 #define MVID   0x16
