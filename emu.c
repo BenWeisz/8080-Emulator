@@ -34,44 +34,88 @@ int emulate(STATE *state){
 			state->M = 0x0000 | state->B;
 			break;
 		case ADDB:
-			flag(state, ADDB, state->A, state->B);
 			state->A += state->B;
+			break;
+		case SUBB:
+			state->A -= state->B;
+			flag(state, SZAPC, state->A);
+			break;
+		case ANAB:
+			state->A = state->A & state->B;
+			flag(state, SZAPC, state->A);
+			break;
+		case ORAB:
+			state->A = state->A | state->B;
+			flag(state, SZAPC, state->A);
+			break;
+		case RNZ:
+			if (!(state->F & ZERO)){
+				unsigned short sp = state->SP;
+				state->PC = ((state->MEM[sp + 1] << 8) | state->MEM[sp]);
+				state->SP += 2;
+			}
+			break;
+		case RNC:
+			if (!(state->F & CARRY)){
+				unsigned short sp = state->SP;
+				state->PC = ((state->MEM[sp + 1] << 8) | state->MEM[sp]);
+				state->SP += 2;
+			}
+			break;
+		case RPO:
+			if (!(state->F & PARITY)){
+				unsigned short sp = state->SP;
+				state->PC = ((state->MEM[sp + 1] << 8) | state->MEM[sp]);
+				state->SP += 2;
+			}
+			break;
+		case RP:
+			if (!(state->F & SIGN)){
+				unsigned short sp = state->SP;
+				state->PC = ((state->MEM[sp + 1] << 8) | state->MEM[sp]);
+				state->SP += 2;
+			}
 			break;
 	}
 
 	return 0;
 }
 
-void flag(STATE *state, unsigned char op, unsigned char A, unsigned B){
-	// Operation
-	unsigned int temp;
-	if (op == ADDB)
-		temp = (A + B);
-
+void flag(STATE *state, unsigned char flags, unsigned char val){
 	// Sign Bit
-	if (temp >> 7)
+	if (val >> 7 && flags & SIGN)
 		state->F |= SIGN;
+	else if (flags & SIGN)
+		state->F &= ~SIGN;
 
 	// Zero Bit
-	if (temp == 0x00)
+	if (val == 0x00 && flags & ZERO)
 		state->F |= ZERO;
+	else if (flags & ZERO)
+		state->F &= ~ZERO;
 
 	// Aux Bit
-	if ((temp & 0x10) >> 4)
+	if ((val & 0x10) >> 4 && flags & AUX)
 		state->F |= AUX;
+	else if (flags & AUX)
+		state->F &= ~AUX;
 
 	// Parity Bit
-	unsigned int p = temp ^ (temp >> 1);
-	p ^= temp >> 2;
-	p ^= temp >> 3;
-	p ^= temp >> 4;
-	p ^= temp >> 5;
-	p ^= temp >> 6;
-	p ^= temp >> 7;
-	if (p)
+	unsigned int p = val ^ (val >> 1);
+	p ^= val >> 2;
+	p ^= val >> 3;
+	p ^= val >> 4;
+	p ^= val >> 5;
+	p ^= val >> 6;
+	p ^= val >> 7;
+	if (p && flags & PARITY)
 		state->F |= PARITY;
+	else if (flags & PARITY)
+		state->F &= ~PARITY;
 
 	// Carry Bit
-	if ((temp >> 8 > 0))
+	if ((val >> 8 > 0) && flags & CARRY)
 		state->F |= CARRY;
+	else if (flags & CARRY)
+		state->F &= ~CARRY;
 }
