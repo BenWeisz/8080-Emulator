@@ -12,9 +12,10 @@
 #define CARRY  0x01
 
 typedef struct state {
-	unsigned char A, B, C, D, E, F, M, L, F; 
+	unsigned char A, B, C, D, E, H, L, M, F; 
 	unsigned short PC, SP;
 	unsigned char MEM[65536];
 } STATE;
 
 int emulate(STATE *state);
+void flag(STATE *state, unsigned char op, unsigned char A, unsigned B);

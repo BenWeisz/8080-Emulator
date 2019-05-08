@@ -25,20 +25,53 @@ int emulate(STATE *state){
 		case NOP30: break;
 	 	case MOVBB: break;
 		case MOVDB:
-			state->D = state->B
+			state->D = state->B;
 			break;
 		case MOVHB:
 			state->H = state->B;
 			break;
 		case MOVMB:
-			state->M = 0xFF00 | state->B;
+			state->M = 0x0000 | state->B;
 			break;
 		case ADDB:
-			unsigned int c = (state->A + state->B >> 8 > 0);
-			if (c)	state->F |= CARRY;
+			flag(state, ADDB, state->A, state->B);
+			state->A += state->B;
 			break;
-		
 	}
 
 	return 0;
+}
+
+void flag(STATE *state, unsigned char op, unsigned char A, unsigned B){
+	// Operation
+	unsigned int temp;
+	if (op == ADDB)
+		temp = (A + B);
+
+	// Sign Bit
+	if (temp >> 7)
+		state->F |= SIGN;
+
+	// Zero Bit
+	if (temp == 0x00)
+		state->F |= ZERO;
+
+	// Aux Bit
+	if ((temp & 0x10) >> 4)
+		state->F |= AUX;
+
+	// Parity Bit
+	unsigned int p = temp ^ (temp >> 1);
+	p ^= temp >> 2;
+	p ^= temp >> 3;
+	p ^= temp >> 4;
+	p ^= temp >> 5;
+	p ^= temp >> 6;
+	p ^= temp >> 7;
+	if (p)
+		state->F |= PARITY;
+
+	// Carry Bit
+	if ((temp >> 8 > 0))
+		state->F |= CARRY;
 }
