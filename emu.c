@@ -31,10 +31,12 @@ int emulate(STATE *state){
 			state->H = state->B;
 			break;
 		case MOVMB:
-			state->M = 0x0000 | state->B;
+			state->H = 0x00;
+			state->L = state->B;
 			break;
 		case ADDB:
 			state->A += state->B;
+			flag(state, SZAPC, state->A);
 			break;
 		case SUBB:
 			state->A -= state->B;
@@ -76,9 +78,73 @@ int emulate(STATE *state){
 				state->SP += 2;
 			}
 			break;
+		case LXIB:
+			state->B = state->MEM[state->PC + 2];
+			state->C = state->MEM[state->PC + 1];
+			return 3;
+		case LXID:
+			state->D = state->MEM[state->PC + 2];
+			state->E = state->MEM[state->PC + 1];
+			return 3;
+		case LXIH:
+			state->H = state->MEM[state->PC + 2];
+			state->L = state->MEM[state->PC + 1];
+			return 3;
+		case LXISP:
+			state->SP = state->MEM[state->PC + 2] << 8 | state->MEM[state->PC + 1];
+			return 3;
+		case MOVBC:
+			state->B = state->C;
+			break;
+		case MOVDC:
+			state->D = state->C;
+			break;
+		case MOVHC:
+			state->H = state->C;
+			break;
+		case MOVMC:
+			state->H = 0x00;
+			state->L = state->C;
+			break;
+		case ADDC:
+			state->A += state->C;
+			flag(state, SZAPC, state->A);
+			break;
+		case SUBC:
+			state->A -= state->C;
+			flag(state, SZAPC, state->A);
+			break;
+		case ANAC:
+			state->A = state->A & state->C;
+			flag(state, SZAPC, state->A);
+			break;
+		case ORAC:
+			state->A = state->A | state->C;
+			flag(state, SZAPC, state->A);
+			break;
+		case POPB:
+			state->B = state->MEM[state->SP + 1];
+			state->C = state->MEM[state->SP];
+			state->SP += 2;
+			break;
+		case POPD:
+			state->D = state->MEM[state->SP + 1];
+			state->E = state->MEM[state->SP];
+			state->SP += 2;
+			break;
+		case POPH:
+			state->H = state->MEM[state->SP + 1];
+			state->L = state->MEM[state->SP];
+			state->SP += 2;
+			break;
+		case POPPSW:
+			state->F = state->MEM[state->SP]; // TODO --> POSSIBLE ERROR
+			state->SP += 2;
+			flag(state, SZAPC, state->A);
+			break;
 	}
 
-	return 0;
+	return 1;
 }
 
 void flag(STATE *state, unsigned char flags, unsigned char val){

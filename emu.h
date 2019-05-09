@@ -15,7 +15,7 @@
 #define SZAP SIGN | ZERO | AUX | PARITY | CARRY
 
 typedef struct state {
-	unsigned char A, B, C, D, E, H, L, M, F; 
+	unsigned char A, B, C, D, E, H, L, F; 
 	unsigned short PC, SP;
 	unsigned char MEM[65536];
 } STATE;
