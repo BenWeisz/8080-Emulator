@@ -142,6 +142,40 @@ int emulate(STATE *state){
 			state->SP += 2;
 			flag(state, SZAPC, state->A);
 			break;
+		case STAXB:
+			state->MEM[(state->B << 8) | state->C] = state->A;
+			break;
+		case STAXD:
+			state->MEM[(state->D << 8) | state->C] = state->A;
+			break;
+		case SHLD:
+			unsigned char lo = state->MEM[state->PC + 1];
+			unsigned char hi = state->MEM[state->PC + 2];
+			state->MEM[(hi << 8) | low] = state->L;
+			state->MEM[((hi << 8) | low) + 1] = state->H;
+			return 3;
+		case STA:
+			unsigned char lo = state->MEM[state->PC + 1];
+			unsigned char hi = state->MEM[state->PC + 2];
+			state->MEM[(hi << 8) | lo] = state->A;
+			return 3;
+		case MOVBD:
+			state->B = state->D;
+			break;
+		case MOVDD:
+			state->D = state->D;
+			break;
+		case MOVHD:
+			state->H = state->D;
+			break;
+		case MOVMD:
+			state->H = 0x00;
+			state->L = state->D;
+			break;	
+		case ADDD:
+			state->A += state->D;
+			flag(state, SZAPC, state->A);
+			break;
 	}
 
 	return 1;
