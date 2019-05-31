@@ -176,6 +176,50 @@ int emulate(STATE *state){
 			state->A += state->D;
 			flag(state, SZAPC, state->A);
 			break;
+		case SUBD:
+			state->A -= state->D;
+			flag(state, SZAPC, state->A);
+			break;
+		case ANAD:
+			state-> = state->A & state->D;
+			flag(state, SZAPC, state->A);		
+			break;
+		case ORAD:
+			state->A = state->A | state->D;
+			flag(state, SZAPC, state->A);
+			break;
+		case JNZ:
+			if (state->F & ZERO == 0){
+				unsigned char lo = state->MEM[state->PC + 1];
+				unsigned char hi = state->MEM[state->PC + 2];
+				state->PC = (hi << 8) | lo;
+				return 0;						
+			}
+			return 3;
+		case JNC:
+			if (state->F & CARRY == 0){
+				unsigned char lo = state->MEM[state->PC + 1];
+				unsigned char hi = state->MEM[state->PC + 2];
+				state->PC = (hi << 8) | low;
+				return 0;			
+			}
+			return 3;
+		case JPO:
+			if (state->F & PARITY == 0){
+				unsigned char lo = state->MEM[state->PC + 1];
+				unsigned char hi = state->MEM[state->PC + 2];
+				state->PC = (hi << 8) | lo;				
+				return 0;
+			}
+			return 3;
+		case JP:
+			if (state->F & SIGN == 0){
+				unsigned char lo = state->MEM[state->PC + 1];
+				unsigned char hi = state->MEM[state->PC + 2];
+				state->PC = (hi << 8) | lo;				
+				return 0;			
+			}
+			return 3;
 	}
 
 	return 1;
