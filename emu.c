@@ -15,6 +15,29 @@ int main(int argc, char **argv){
 	return 0;
 }
 
+STATE *state init(){
+	STATE *state = malloc(sizeof(STATE));
+	state->A = 0x00;
+	state->B = 0x00;
+	state->C = 0x00;
+	state->D = 0x00;
+	state->E = 0x00;
+	state->H = 0x00;
+	state->L = 0x00;
+	state->F = 0x00;
+
+	state->PC = 0x0000;
+	state->SP = 0x0000;
+
+	memset(state->MEM, 0xFFFF, 0x00);
+	memset(state->IN, 0xFF, 0x00);
+	memset(state->OUT, 0xFF, 0x00);
+
+	state->INTE = 0x00;	
+
+	return state;
+}
+
 int emulate(STATE *state){
 	unsigned char *op = &(state->MEM[state->PC]);
 	
@@ -220,6 +243,72 @@ int emulate(STATE *state){
 				return 0;			
 			}
 			return 3;
+		case INXB:
+			state->C = state->C + 1;
+			if (state->C == 0x00)
+				state->B = state->B + 1;
+			break;
+		case INXD:
+			state->E = state->E + 1;
+			if (state->E == 0x00)
+				state->D = state->D + 1;
+			break;
+		case INXH:
+			state->L = state->L + 1;
+			if (state->L == 0x00)
+				state->H = state->H + 1;
+			break;
+		case INXSP:
+			state->SP = state->SP + 1;
+			break;
+		case MOVBE:
+			state->B = state->E;
+			break;
+		case MOVDE:
+			state->D = state->E;
+			break;
+		case MOVHE:
+			state->H = state->E;
+		case MOVME:
+			state->H = 0x00;
+			state->L = state->E;
+			break;
+		case ADDE:
+			state->A = state->A + state->E;
+			flag(state, SZAPC, state->A);
+			break;
+		case SUBE:
+			state->A = state->A - state->E;
+			flag(state, SZAPC, state->A);
+			break;
+		case ANAE:
+			state->A = state->A & state->E;
+			flag(state, SZAPC, state->A);
+			break;
+		case ORAE:
+			state->A = state->A | state->E;
+			flag(state, SZAPC, state->A);
+			break;
+		case JMP:
+			unsigned char lo = state->MEM[state->PC + 1];
+			unsigned char hi = state->MEM[state->PC + 2];
+			state->PC = (state-> hi << 8) | state->lo;
+			return 0;
+		case OUT:
+			unsigned char dev = state->MEM[state->PC + 1];
+			state->OUT[dev] = state->A;
+			return 2;
+		case XTHL:
+			unsigned char t0 = state->L;
+			unsigned char t1 = state->H;
+			state->L = state->MEM[state->SP];
+			state->H = state->MEM[state->SP + 1];
+			state->MEM[state->SP] = t0;
+			state->MEM[state->SP + 1] = t1;
+			break;
+		case DI:
+			state->INTE = 0x00;
+			break;
 	}
 
 	return 1;

@@ -11,14 +11,18 @@
 #define PARITY 0x04
 #define CARRY  0x01
 
-#define SZAPC SIGN | ZERO | AUX | PARITY | CARRY
-#define SZAP SIGN | ZERO | AUX | PARITY | CARRY
+#define SZAPC (SIGN | ZERO | AUX | PARITY | CARRY)
+#define SZAP (SIGN | ZERO | AUX | PARITY | CARRY)
 
 typedef struct state {
 	unsigned char A, B, C, D, E, H, L, F; 
 	unsigned short PC, SP;
 	unsigned char MEM[65536];
+	unsigned char IN[255];
+	unsigned char OUT[255];
+	unsigned char INTE;
 } STATE;
 
+STATE *state init();
 int emulate(STATE *state);
 void flag(STATE *state, unsigned char flags, unsigned char val);
