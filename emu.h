@@ -18,11 +18,11 @@ typedef struct state {
 	unsigned char A, B, C, D, E, H, L, F; 
 	unsigned short PC, SP;
 	unsigned char MEM[65536];
-	unsigned char IN[255];
-	unsigned char OUT[255];
+	unsigned char IN_DEV[255];
+	unsigned char OUT_DEV[255];
 	unsigned char INTE;
 } STATE;
 
-STATE *state init();
+STATE *init();
 int emulate(STATE *state);
 void flag(STATE *state, unsigned char flags, unsigned char val);

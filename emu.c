@@ -15,7 +15,7 @@ int main(int argc, char **argv){
 	return 0;
 }
 
-STATE *state init(){
+STATE *init(){
 	STATE *state = malloc(sizeof(STATE));
 	state->A = 0x00;
 	state->B = 0x00;
@@ -29,9 +29,9 @@ STATE *state init(){
 	state->PC = 0x0000;
 	state->SP = 0x0000;
 
-	memset(state->MEM, 0xFFFF, 0x00);
-	memset(state->IN, 0xFF, 0x00);
-	memset(state->OUT, 0xFF, 0x00);
+	memset(state->MEM, 0x00, 0xFFFF);
+	memset(state->IN_DEV, 0x00, 0xFF);
+	memset(state->OUT_DEV, 0x00, 0xFF);
 
 	state->INTE = 0x00;	
 
@@ -47,258 +47,315 @@ int emulate(STATE *state){
 		case NOP20: break;	
 		case NOP30: break;
 	 	case MOVBB: break;
-		case MOVDB:
+		case MOVDB: {
 			state->D = state->B;
 			break;
-		case MOVHB:
+		}
+		case MOVHB: {
 			state->H = state->B;
 			break;
-		case MOVMB:
+		}
+		case MOVMB: {
 			state->H = 0x00;
 			state->L = state->B;
 			break;
-		case ADDB:
+		}
+		case ADDB: {
 			state->A += state->B;
 			flag(state, SZAPC, state->A);
 			break;
-		case SUBB:
+		}
+		case SUBB: {
 			state->A -= state->B;
 			flag(state, SZAPC, state->A);
 			break;
-		case ANAB:
+		}
+		case ANAB: {
 			state->A = state->A & state->B;
 			flag(state, SZAPC, state->A);
 			break;
-		case ORAB:
+		}			
+		case ORAB: {
 			state->A = state->A | state->B;
 			flag(state, SZAPC, state->A);
 			break;
-		case RNZ:
+		}		
+		case RNZ: {
 			if (!(state->F & ZERO)){
 				unsigned short sp = state->SP;
 				state->PC = ((state->MEM[sp + 1] << 8) | state->MEM[sp]);
 				state->SP += 2;
 			}
 			break;
-		case RNC:
+		}		
+		case RNC: {
 			if (!(state->F & CARRY)){
 				unsigned short sp = state->SP;
 				state->PC = ((state->MEM[sp + 1] << 8) | state->MEM[sp]);
 				state->SP += 2;
 			}
 			break;
-		case RPO:
+		}		
+		case RPO: {
 			if (!(state->F & PARITY)){
 				unsigned short sp = state->SP;
 				state->PC = ((state->MEM[sp + 1] << 8) | state->MEM[sp]);
 				state->SP += 2;
 			}
 			break;
-		case RP:
+		}		
+		case RP: {
 			if (!(state->F & SIGN)){
 				unsigned short sp = state->SP;
 				state->PC = ((state->MEM[sp + 1] << 8) | state->MEM[sp]);
 				state->SP += 2;
 			}
 			break;
-		case LXIB:
+		}		
+		case LXIB: {
 			state->B = state->MEM[state->PC + 2];
 			state->C = state->MEM[state->PC + 1];
 			return 3;
-		case LXID:
+		}		
+		case LXID: {
 			state->D = state->MEM[state->PC + 2];
 			state->E = state->MEM[state->PC + 1];
 			return 3;
-		case LXIH:
+		}		
+		case LXIH: {
 			state->H = state->MEM[state->PC + 2];
 			state->L = state->MEM[state->PC + 1];
 			return 3;
-		case LXISP:
+		}		
+		case LXISP: {
 			state->SP = state->MEM[state->PC + 2] << 8 | state->MEM[state->PC + 1];
 			return 3;
-		case MOVBC:
+		}		
+		case MOVBC: {
 			state->B = state->C;
 			break;
-		case MOVDC:
+		}		
+		case MOVDC: {
 			state->D = state->C;
 			break;
-		case MOVHC:
+		}		
+		case MOVHC: {
 			state->H = state->C;
 			break;
-		case MOVMC:
+		}		
+		case MOVMC: {
 			state->H = 0x00;
 			state->L = state->C;
 			break;
-		case ADDC:
+		}		
+		case ADDC: {
 			state->A += state->C;
 			flag(state, SZAPC, state->A);
 			break;
-		case SUBC:
+		}		
+		case SUBC: {
 			state->A -= state->C;
 			flag(state, SZAPC, state->A);
 			break;
-		case ANAC:
+		}			
+		case ANAC: {
 			state->A = state->A & state->C;
 			flag(state, SZAPC, state->A);
 			break;
-		case ORAC:
+		}
+		case ORAC: {
 			state->A = state->A | state->C;
 			flag(state, SZAPC, state->A);
 			break;
-		case POPB:
+		}
+		case POPB: {
 			state->B = state->MEM[state->SP + 1];
 			state->C = state->MEM[state->SP];
 			state->SP += 2;
 			break;
-		case POPD:
+		}
+		case POPD: {
 			state->D = state->MEM[state->SP + 1];
 			state->E = state->MEM[state->SP];
 			state->SP += 2;
 			break;
-		case POPH:
+		}
+		case POPH: {
 			state->H = state->MEM[state->SP + 1];
 			state->L = state->MEM[state->SP];
 			state->SP += 2;
 			break;
-		case POPPSW:
+		}
+		case POPPSW: {
 			state->F = state->MEM[state->SP]; // TODO --> POSSIBLE ERROR
 			state->SP += 2;
 			flag(state, SZAPC, state->A);
 			break;
-		case STAXB:
+		}
+		case STAXB: {
 			state->MEM[(state->B << 8) | state->C] = state->A;
 			break;
-		case STAXD:
+		}
+		case STAXD: {
 			state->MEM[(state->D << 8) | state->C] = state->A;
 			break;
-		case SHLD:
+		}
+		case SHLD: {
 			unsigned char lo = state->MEM[state->PC + 1];
 			unsigned char hi = state->MEM[state->PC + 2];
-			state->MEM[(hi << 8) | low] = state->L;
-			state->MEM[((hi << 8) | low) + 1] = state->H;
+			state->MEM[(hi << 8) | lo] = state->L;
+			state->MEM[((hi << 8) | lo) + 1] = state->H;
 			return 3;
-		case STA:
+		}
+		case STA: {
 			unsigned char lo = state->MEM[state->PC + 1];
 			unsigned char hi = state->MEM[state->PC + 2];
 			state->MEM[(hi << 8) | lo] = state->A;
 			return 3;
-		case MOVBD:
+		}
+		case MOVBD: {
 			state->B = state->D;
 			break;
-		case MOVDD:
+		}
+		case MOVDD: {
 			state->D = state->D;
 			break;
-		case MOVHD:
+		}
+		case MOVHD: {
 			state->H = state->D;
 			break;
-		case MOVMD:
+		}
+		case MOVMD: {
 			state->H = 0x00;
 			state->L = state->D;
 			break;	
-		case ADDD:
+		}
+		case ADDD: {
 			state->A += state->D;
 			flag(state, SZAPC, state->A);
 			break;
-		case SUBD:
+		}
+		case SUBD: {
 			state->A -= state->D;
 			flag(state, SZAPC, state->A);
 			break;
-		case ANAD:
-			state-> = state->A & state->D;
+		}
+		case ANAD: {
+			state->A = state->A & state->D;
 			flag(state, SZAPC, state->A);		
 			break;
-		case ORAD:
+		}
+		case ORAD: {
 			state->A = state->A | state->D;
 			flag(state, SZAPC, state->A);
 			break;
-		case JNZ:
-			if (state->F & ZERO == 0){
+		}
+		case JNZ: {
+			if ((state->F & ZERO) == 0){
 				unsigned char lo = state->MEM[state->PC + 1];
 				unsigned char hi = state->MEM[state->PC + 2];
 				state->PC = (hi << 8) | lo;
 				return 0;						
 			}
 			return 3;
-		case JNC:
-			if (state->F & CARRY == 0){
+		}
+		case JNC: {
+			if ((state->F & CARRY) == 0){
 				unsigned char lo = state->MEM[state->PC + 1];
 				unsigned char hi = state->MEM[state->PC + 2];
-				state->PC = (hi << 8) | low;
+				state->PC = (hi << 8) | lo;
 				return 0;			
 			}
 			return 3;
-		case JPO:
-			if (state->F & PARITY == 0){
+		}
+		case JPO: {
+			if ((state->F & PARITY) == 0){
 				unsigned char lo = state->MEM[state->PC + 1];
 				unsigned char hi = state->MEM[state->PC + 2];
 				state->PC = (hi << 8) | lo;				
 				return 0;
 			}
 			return 3;
-		case JP:
-			if (state->F & SIGN == 0){
+		}
+		case JP: {
+			if ((state->F & SIGN) == 0){
 				unsigned char lo = state->MEM[state->PC + 1];
 				unsigned char hi = state->MEM[state->PC + 2];
 				state->PC = (hi << 8) | lo;				
 				return 0;			
 			}
 			return 3;
-		case INXB:
+		}
+		case INXB: {
 			state->C = state->C + 1;
 			if (state->C == 0x00)
 				state->B = state->B + 1;
 			break;
-		case INXD:
+		}
+		case INXD: {
 			state->E = state->E + 1;
 			if (state->E == 0x00)
 				state->D = state->D + 1;
 			break;
-		case INXH:
+		}
+		case INXH: {
 			state->L = state->L + 1;
 			if (state->L == 0x00)
 				state->H = state->H + 1;
 			break;
-		case INXSP:
+		}
+		case INXSP: {
 			state->SP = state->SP + 1;
 			break;
-		case MOVBE:
+		}
+		case MOVBE: {
 			state->B = state->E;
 			break;
-		case MOVDE:
+		}
+		case MOVDE: {
 			state->D = state->E;
 			break;
-		case MOVHE:
+		}
+		case MOVHE: {
 			state->H = state->E;
-		case MOVME:
+		}
+		case MOVME: {
 			state->H = 0x00;
 			state->L = state->E;
 			break;
-		case ADDE:
+		}
+		case ADDE: {
 			state->A = state->A + state->E;
 			flag(state, SZAPC, state->A);
 			break;
-		case SUBE:
+		}
+		case SUBE: {
 			state->A = state->A - state->E;
 			flag(state, SZAPC, state->A);
 			break;
-		case ANAE:
+		}
+		case ANAE: {
 			state->A = state->A & state->E;
 			flag(state, SZAPC, state->A);
 			break;
-		case ORAE:
+		}
+		case ORAE: {
 			state->A = state->A | state->E;
 			flag(state, SZAPC, state->A);
 			break;
-		case JMP:
+		}
+		case JMPC3: {
 			unsigned char lo = state->MEM[state->PC + 1];
 			unsigned char hi = state->MEM[state->PC + 2];
-			state->PC = (state-> hi << 8) | state->lo;
+			state->PC = (hi << 8) | lo;
 			return 0;
-		case OUT:
+		}
+		case OUT: {
 			unsigned char dev = state->MEM[state->PC + 1];
-			state->OUT[dev] = state->A;
+			state->OUT_DEV[dev] = state->A;
 			return 2;
-		case XTHL:
+		}
+		case XTHL: {
 			unsigned char t0 = state->L;
 			unsigned char t1 = state->H;
 			state->L = state->MEM[state->SP];
@@ -306,9 +363,11 @@ int emulate(STATE *state){
 			state->MEM[state->SP] = t0;
 			state->MEM[state->SP + 1] = t1;
 			break;
-		case DI:
+		}
+		case DI: {
 			state->INTE = 0x00;
 			break;
+		}
 	}
 
 	return 1;
