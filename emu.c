@@ -56,8 +56,8 @@ int emulate(STATE *state){
 			break;
 		}
 		case MOVMB: {
-			state->H = 0x00;
-			state->L = state->B;
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->B;
 			break;
 		}
 		case ADDB: {
@@ -144,8 +144,8 @@ int emulate(STATE *state){
 			break;
 		}		
 		case MOVMC: {
-			state->H = 0x00;
-			state->L = state->C;
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->C;
 			break;
 		}		
 		case ADDC: {
@@ -226,8 +226,8 @@ int emulate(STATE *state){
 			break;
 		}
 		case MOVMD: {
-			state->H = 0x00;
-			state->L = state->D;
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->D;
 			break;	
 		}
 		case ADDD: {
@@ -320,8 +320,8 @@ int emulate(STATE *state){
 			state->H = state->E;
 		}
 		case MOVME: {
-			state->H = 0x00;
-			state->L = state->E;
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->E;
 			break;
 		}
 		case ADDE: {
@@ -367,6 +367,128 @@ int emulate(STATE *state){
 		case DI: {
 			state->INTE = 0x00;
 			break;
+		}
+		case INRB: {
+			state->B = state->B + 1;
+			flag(state, SZAP, state->B);
+			break;
+		}
+		case INRD: {
+			state->D = state->D + 1;
+			flag(state, SZAP, state->D);
+			break;
+		}
+		case INRH: {
+			state->H = state->H + 1;
+			flag(state, SZAP, state->H);
+			break;
+		}
+		case INRM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->MEM[adr] + 1;
+			flag(state, SZAP, state->MEM[adr]);
+			break;
+		}
+		case MOVBH: {
+			state->B = state->H;
+			break;
+		}
+		case MOVDH: {
+			state->D = state->H;
+			break;
+		}
+		case MOVHH: {
+			state->H = state->H;
+			break;
+		}
+		case MOVMH: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->H;
+			break;
+		}
+		case ADDH: {
+			state->A = state->A + state->H;
+			flag(state, SZAPC, state->A);
+			break;
+		}
+		case SUBH: {
+			state->A = state->A - state->H;
+			flag(state, SZAPC, state->A);
+			break;
+		}
+		case ANAH: {
+			state->A = state->A & state->H;
+			flag(state, SZAPC, state->A);
+			break;
+		}
+		case ORAH: {
+			state->A = state->A | state->H;
+			flag(state, SZAPC, state->A);
+			break;
+		}
+		case CNZ: {
+			if (state->F & ZERO){
+				unsigned short ret_adr = state->PC + 3;
+				state->MEM[state->SP - 1] = (ret_adr & 0xFF00) >> 8;
+				state->MEM[state->SP] = ret_adr & 0x00FF;
+				state->SP = state->SP - 2;
+
+				unsigned char lo = state->MEM[state->PC + 1];
+				unsigned char hi = state->MEM[state->PC + 2];
+
+				unsigned short jmp_adr = (hi << 8) | lo;
+				state->PC = jmp_adr;
+				return 0;
+			}
+			return 3;
+		}
+		case CNC: {
+			if (!(state->F & CARRY)){
+				unsigned short ret_adr = state->PC + 3;
+				state->MEM[state->SP - 1] = (ret_adr & 0xFF00) >> 8;
+				state->MEM[state->SP] = ret_adr & 0x00FF;
+				state->SP = state->SP - 2;
+
+				unsigned char lo = state->MEM[state->PC + 1];
+				unsigned char hi = state->MEM[state->PC + 2];
+
+				unsigned short jmp_adr = (hi << 8) | lo;
+				state->PC = jmp_adr;
+				return 0;
+			}
+			return 3;
+		}
+		case CPO: {
+			if (!(state->F & PARITY)){
+				unsigned short ret_adr = state->PC + 3;
+				state->MEM[state->SP - 1] = (ret_adr & 0xFF00) >> 8;
+				state->MEM[state->SP] = ret_adr & 0x00FF;
+				state->SP = state->SP - 2;
+
+				unsigned char lo = state->MEM[state->PC + 1];
+				unsigned char hi = state->MEM[state->PC + 2];
+
+				unsigned short jmp_adr = (hi << 8) | lo;
+				state->PC = jmp_adr;
+				return 0;
+			}
+			return 3;
+		}
+		case CP: {
+			if (!(state->F & SIGN)){
+				unsigned short ret_adr = state->PC + 3;
+				state->MEM[state->SP - 1] = (ret_adr & 0xFF00) >> 8;
+				state->MEM[state->SP] = ret_adr & 0x00FF;
+				state->SP = state->SP - 2;
+
+				unsigned char lo = state->MEM[state->PC + 1];
+				unsigned char hi = state->MEM[state->PC + 2];
+
+				unsigned short jmp_adr = (hi << 8) | lo;
+				state->PC = jmp_adr;
+				return 0;
+			}
+			return 3;
 		}
 	}
 

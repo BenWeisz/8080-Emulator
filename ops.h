@@ -80,7 +80,7 @@
 #define ORAH   0xB4
 #define CNZ    0xC4
 #define CNC    0xD4
-#define CP0    0xE4
+#define CPO    0xE4
 #define CP     0xF4
 
 #define DCRB   0x05
