@@ -490,6 +490,88 @@ int emulate(STATE *state){
 			}
 			return 3;
 		}
+		case DCRB: {
+			state->B = state->B - 1;
+			flag(state, SZAP, state->B);
+			break;
+		}
+		case DCRD: {
+			state->D = state->D - 1;
+			flag(state, SZAP, state->D);
+			break;
+		}
+		case DCRH: {
+			state->H = state->H - 1;
+			flag(state, SZAP, state->H);
+			break;
+		}
+		case DCRM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->MEM[adr] - 1;
+			flag(state, SZAP, state->MEM[adr]);
+			break;
+		}
+		case MOVBL: {
+			state->B = state->L;
+			break;
+		}
+		case MOVDL: {
+			state->D = state->L;
+			break;
+		}
+		case MOVHL: {
+			state->H = state->L;
+			break;
+		}
+		case MOVML: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->L;
+			break;
+		}
+		case ADDL: {
+			state->A = state->A + state->L;
+			flag(state, SZAPC, state->A);
+			break;
+		}
+		case SUBL: {
+			state->A -= state->L;
+			flag(state, SZAPC, state->A);
+			break;
+		}
+		case ANAL: {
+			state->A = state->A & state->L;
+			flag(state, SZAPC, state->A);
+			break;
+		}
+		case ORAL: {
+			state->A = state->A | state->L;
+			flag(state, SZAPC, state->A);
+			break;
+		}
+		case PUSHB: {
+			state->MEM[state->SP - 1] = state->B;
+			state->MEM[state->SP - 2] = state->C;
+			state->SP = state->SP - 2;
+			break;
+		}
+		case PUSHD: {
+			state->MEM[state->SP - 1] = state->D;
+			state->MEM[state->SP - 2] = state->E;
+			state->SP = state->SP - 2;
+			break;
+		}
+		case PUSHH: {
+			state->MEM[state->SP - 1] = state->H;
+			state->MEM[state->SP - 2] = state->L;
+			state->SP = state->SP - 2;
+			break;
+		}
+		case PUSHPSW: {
+			state->MEM[state->SP - 1] = state->A;
+			state->MEM[state->SP - 2] = state->F;
+			state->SP = state->SP - 2;
+			break;
+		}
 	}
 
 	return 1;
