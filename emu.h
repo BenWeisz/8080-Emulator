@@ -21,6 +21,7 @@ typedef struct state {
 	unsigned char IN_DEV[255];
 	unsigned char OUT_DEV[255];
 	unsigned char INTE;
+	unsigned int HALT;
 } STATE;
 
 STATE *init();

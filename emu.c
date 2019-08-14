@@ -572,6 +572,82 @@ int emulate(STATE *state){
 			state->SP = state->SP - 2;
 			break;
 		}
+		case MVIB: {
+			state->B = state->MEM[state->SP + 1];
+			return 2;
+		}
+		case MVID: {
+			state->D = state->MEM[state->SP + 1];
+			return 2;
+		}
+		case MVIM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->MEM[state->SP + 1];
+			return 2;
+		}
+		case MOVBM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->B = state->MEM[adr];
+			break;
+		}
+		case MOVDM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->D = state->MEM[adr];
+			break;
+		}
+		case MOVHM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->H = state->MEM[adr];
+			break;
+		}
+		case HLT: {
+			state->HALT = 1;
+			break;
+		}
+		case ADDM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->A = state->A + state->MEM[adr];
+			flag(state, SZAPC, state->A);
+			break;
+		}	
+		case SUBM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->A = state->A - state->MEM[adr];
+			flag(state, SZAPC, state->A);
+			break;
+		}
+		case ANAM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->A = state->A & state->MEM[adr];
+			flag(state, SZAPC, state->A);
+			break;
+		}
+		case ORAM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->A = state->A | state->MEM[adr];
+			flag(state, SZAPC, state->A);
+			break;
+		}
+		case ADI: {
+			state->A = state->A + state->MEM[state->SP + 1];
+			flag(state, SZAPC, state->A);
+			return 2;
+		}
+		case SUI: {
+			state->A = state->A - state->MEM[state->SP + 1];
+			flag(state, SZAPC, state->A);
+			return 2;
+		}
+		case ANI: {
+			state->A = state->A & state->MEM[state->SP + 1];
+			flag(state, SZAPC, state->A);
+			return 2;
+		}
+		case ORI: {
+			state->A = state->A | state->MEM[state->SP + 1];
+			flag(state, SZAPC, state->A);
+			return 2;
+		}
 	}
 
 	return 1;
