@@ -14,16 +14,16 @@
 #define SZAPC (SIGN | ZERO | AUX | PARITY | CARRY)
 #define SZAP (SIGN | ZERO | AUX | PARITY | CARRY)
 
+// Operation Classes
+#define ADD 0x00
+#define SUB 0x01
+
 typedef struct state {
 	unsigned char A, B, C, D, E, H, L, F; 
 	unsigned short PC, SP;
 	unsigned char MEM[65536];
-	unsigned char IN_DEV[255];
-	unsigned char OUT_DEV[255];
-	unsigned char INTE;
-	unsigned int HALT;
 } STATE;
 
 STATE *init();
-int emulate(STATE *state);
-void flag(STATE *state, unsigned char flags, unsigned char val);
+int emulate();
+unsigned char alu(unsigned char flags, unsigned char a, unsigned char b, unsigned char op);
