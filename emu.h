@@ -12,11 +12,12 @@
 #define CARRY  0x01
 
 #define SZAPC (SIGN | ZERO | AUX | PARITY | CARRY)
-#define SZAP (SIGN | ZERO | AUX | PARITY | CARRY)
+#define SZAP (SIGN | ZERO | AUX | PARITY)
 
 // Operation Classes
-#define ADD 0x00
-#define SUB 0x01
+#define ADD 0x80
+#define SUB 0x90
+#define DAD 0x09
 
 typedef struct state {
 	unsigned char A, B, C, D, E, H, L, F; 
@@ -26,4 +27,4 @@ typedef struct state {
 
 STATE *init();
 int emulate();
-unsigned char alu(unsigned char flags, unsigned char a, unsigned char b, unsigned char op);
+unsigned short alu(unsigned char flags, unsigned char a, unsigned char b, unsigned char op);

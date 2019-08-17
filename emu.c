@@ -5,15 +5,20 @@ STATE *state;
 int main(int argc, char **argv){
 	state = init();
 
-	unsigned char b = alu(SZAPC, 0x18, 0xF7, SUB);
-	printf("%d %d\n", state->F, b);
+	state->MEM[0] = RRC;
+
+	for (int i = 0; i < 1; i++){
+		state->PC += emulate();
+	}
+
+	printf("Flags: %d, %d\n", state->F, state->A);
 
 	return 0;
 }
 
 STATE *init(){
 	STATE *state = malloc(sizeof(STATE));
-	state->A = 0x00;
+	state->A = 0x01;
 	state->B = 0x00;
 	state->C = 0x00;
 	state->D = 0x00;
@@ -30,18 +35,90 @@ STATE *init(){
 	return state;
 }
 
-int emulate(STATE *state){
+int emulate(){
 	unsigned char *op = &(state->MEM[state->PC]);
 	
 	switch(*op){
-
+		case NOP00: {
+			break;
+		} 
+		case LXIB: {
+			state->B = state->MEM[state->PC + 2];
+			state->C = state->MEM[state->PC + 1];
+			return 3;	
+		}
+		case STAXB: {
+			unsigned short adr = (state->B << 8) | state->C;
+			state->MEM[adr] = state->A;
+			break;
+		}
+		case INXB: {
+			unsigned short comb = (state->B << 8) | state->C;
+			comb++;
+			state->B = (comb >> 8);
+			state->C = comb & 0x00FF;	
+			break;
+		}
+		case INRB: {
+			state->B = alu(SZAP, state->B, 0x01, ADD);
+			break;
+		}
+		case DCRB: {
+			state->B = alu(SZAP, state->B, 0x01, SUB);
+			break;
+		}
+		case MVIB: {
+			state->B = state->MEM[state->PC + 1];
+			return 2;
+		}
+		case RLC: {
+			state->A = alu(CARRY, state->A, 0, RLC);
+			break;
+		}
+		case NOP08: {
+			break;
+		}
+		case DADB: {
+			unsigned short v = alu(CARRY, state->B, state->C, DAD);
+			state->H = v >> 8;
+			state->L = v;
+			break;
+		}
+		case LDAXB: {
+			unsigned short adr = (state->B << 8) | state->C;
+			state->A = state->MEM[adr];
+			break;
+		}
+		case DCXB: {
+			unsigned short v = (state->B << 8) | state->C;
+			v = v - 0x0001;
+			state->B = v >> 8;
+			state->C = v;
+			break; 
+		}
+		case INRC: {
+			state->C = alu(SZAP, state->C, 0x01, ADD);
+			break;
+		}
+		case DCRC: {
+			state->C = alu(SZAP, state->C, 0x01, SUB);
+			break;
+		}
+		case MVIC: {
+			state->C = state->MEM[state->PC + 1];
+			return 2;
+		}
+		case RRC: {
+			state->A = alu(CARRY, state->A, 0, RRC);
+			break;
+		}
 	}
 
 	return 1;
 }
 
-unsigned char alu(unsigned char flags, unsigned char a, unsigned char b, unsigned char op){
-	unsigned short full = 0x0000;
+unsigned short alu(unsigned char flags, unsigned char a, unsigned char b, unsigned char op){
+	unsigned int full = 0x00000000;
 	unsigned char half = 0x00;
 	
 	if (op == ADD){
@@ -52,13 +129,37 @@ unsigned char alu(unsigned char flags, unsigned char a, unsigned char b, unsigne
 		full = a + ((b ^ 0xFF) + 1);
 		half = (a & 0x0F) + (((b ^ 0xFF) + 1) & 0x0F);
 	}
+	else if (op == RLC){
+		full = a + b;
+		full = full << 1;
+		full |= (full & 0x0100) >> 8;
+	}
+	else if (op == DAD){
+		unsigned short ap = (a << 8) | b;
+		unsigned short bp = (state->H << 8) | state->L;
+		full = ap + bp;
+	}
+	else if (op == RRC){
+		full = a + b;
+		full |= (full & 0x01) << 8;
+		full |= (full & 0x01) << 9;
+		full = full >> 1;
+	}
 	
 	//Carry Bit
 	if (flags & CARRY){
-		if ((full & 0x0100) >> 8 == 0x01)
-			state->F |= CARRY;
-		else
-			state->F &= ~CARRY;
+		if (op != DAD){
+			if ((full & 0x0100) >> 8 == 0x01)
+				state->F |= CARRY;
+			else
+				state->F &= ~CARRY;
+		}
+		else {
+			if ((full & 0x00010000) >> 16 == 0x01)
+				state->F |= CARRY;
+			else
+				state->F &= ~CARRY;
+		}
 	}
 
 	//Parity Bit
@@ -102,5 +203,8 @@ unsigned char alu(unsigned char flags, unsigned char a, unsigned char b, unsigne
 			state->F &= ~SIGN;
 	}
 
-	return full & 0xFF;
+	if (op != DAD)
+		return full & 0xFF;
+	else
+		return full & 0xFFFF;
 }

@@ -1,0 +1,16 @@
+#define NOP00 0x00
+#define LXIB  0x01
+#define STAXB 0x02
+#define INXB  0x03
+#define INRB  0x04
+#define DCRB  0x05
+#define MVIB  0x06
+#define RLC   0x07
+#define NOP08 0x08
+#define DADB  0x09
+#define LDAXB 0x0A
+#define DCXB   0x0B
+#define INRC  0x0C
+#define DCRC  0x0D
+#define MVIC  0x0E
+#define RRC   0x0F
