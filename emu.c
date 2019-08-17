@@ -5,7 +5,7 @@ STATE *state;
 int main(int argc, char **argv){
 	state = init();
 
-	state->MEM[0] = RRC;
+	state->MEM[0] = RAR;
 
 	for (int i = 0; i < 1; i++){
 		state->PC += emulate();
@@ -18,7 +18,7 @@ int main(int argc, char **argv){
 
 STATE *init(){
 	STATE *state = malloc(sizeof(STATE));
-	state->A = 0x01;
+	state->A = 0x00;
 	state->B = 0x00;
 	state->C = 0x00;
 	state->D = 0x00;
@@ -39,6 +39,7 @@ int emulate(){
 	unsigned char *op = &(state->MEM[state->PC]);
 	
 	switch(*op){
+		// 0x00 - 0x0F
 		case NOP00: {
 			break;
 		} 
@@ -53,10 +54,10 @@ int emulate(){
 			break;
 		}
 		case INXB: {
-			unsigned short comb = (state->B << 8) | state->C;
-			comb++;
-			state->B = (comb >> 8);
-			state->C = comb & 0x00FF;	
+			unsigned short v = (state->B << 8) | state->C;
+			v++;
+			state->B = (v >> 8);
+			state->C = v & 0x00FF;	
 			break;
 		}
 		case INRB: {
@@ -72,7 +73,7 @@ int emulate(){
 			return 2;
 		}
 		case RLC: {
-			state->A = alu(CARRY, state->A, 0, RLC);
+			state->A = alu(CARRY, state->A, 0x00, RLC);
 			break;
 		}
 		case NOP08: {
@@ -91,7 +92,7 @@ int emulate(){
 		}
 		case DCXB: {
 			unsigned short v = (state->B << 8) | state->C;
-			v = v - 0x0001;
+			v--;
 			state->B = v >> 8;
 			state->C = v;
 			break; 
@@ -109,7 +110,83 @@ int emulate(){
 			return 2;
 		}
 		case RRC: {
-			state->A = alu(CARRY, state->A, 0, RRC);
+			state->A = alu(CARRY, state->A, 0x00, RRC);
+			break;
+		}
+
+		// 0x10 - 0x1F
+		case NOP10: {
+			break;
+		}
+		case LXID: {
+			state->D = state->MEM[state->PC + 2];
+			state->E = state->MEM[state->PC + 1];
+			return 3;
+		}
+
+		case STAXD: {
+			unsigned short adr = (state->D << 8) | state->E;
+			state->MEM[adr] = state->A;
+			break;
+		}
+		case INXD: {
+			unsigned short v = (state->D << 8) | state->E;
+			v++;
+			state->D = v >> 8;
+			state->E = v;
+			break;  
+		}
+		case INRD: {
+			state->D = alu(SZAP, state->D, 0x01, ADD);
+			break;
+		}
+		case DCRD: {
+			state->D = alu(SZAP, state->D, 0x01, SUB);
+			break;
+		}
+		case MVID: {
+			state->D = state->MEM[state->PC + 1];
+			return 2;
+		}
+		case RAL: {
+			state->A = alu(CARRY, state->A, 0x00, RAL);
+			break;
+		}
+		case NOP18: {
+			break;
+		}
+		case DADD: {
+			unsigned short v = alu(CARRY, state->D, state->E, DAD);
+			state->H = v >> 8;
+			state->L = v;
+			break;
+		}
+		case LDAXD: {
+			unsigned short adr = (state->D << 8) | state->E;
+			state->A = state->MEM[adr];
+			break;
+		}
+		case DCXD: {
+			unsigned short v = (state->D << 8) | state->E;
+			v--;
+			state->D = v >> 8;
+			state->E = v;
+			break;
+		}
+		case INRE: {
+			state->E = alu(SZAP, state->E, 0x01, ADD);
+			break;
+		}
+		case DCRE: {
+			state->E = alu(SZAP, state->E, 0x01, SUB);
+			break;
+		}
+		case MVIE: {
+			state->E = state->MEM[state->PC + 1];
+			return 2;
+		}
+		case RAR: {
+			state->A = alu(CARRY, state->A, 0x00, RAR);
 			break;
 		}
 	}
@@ -145,7 +222,19 @@ unsigned short alu(unsigned char flags, unsigned char a, unsigned char b, unsign
 		full |= (full & 0x01) << 9;
 		full = full >> 1;
 	}
-	
+	else if (op == RAL){
+		full = a + b;
+		full |= (state->F & CARRY) << 8;
+		full = full << 1;
+		full |= (full >> 9);
+	}
+	else if (op == RAR){
+		full = a + b;
+		full |= (state->F & CARRY) << 8;
+		full |= (full & 0x01) << 9;
+		full = full >> 1;
+	}
+
 	//Carry Bit
 	if (flags & CARRY){
 		if (op != DAD){

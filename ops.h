@@ -9,8 +9,25 @@
 #define NOP08 0x08
 #define DADB  0x09
 #define LDAXB 0x0A
-#define DCXB   0x0B
+#define DCXB  0x0B
 #define INRC  0x0C
 #define DCRC  0x0D
 #define MVIC  0x0E
 #define RRC   0x0F
+
+#define NOP10 0x10
+#define LXID  0x11
+#define STAXD 0x12
+#define INXD  0x13
+#define INRD  0x14
+#define DCRD  0x15
+#define MVID  0x16
+#define RAL   0x17
+#define NOP18 0x18
+#define DADD  0x19
+#define LDAXD 0x1A
+#define DCXD  0x1B
+#define INRE  0x1C
+#define DCRE  0x1D
+#define MVIE  0x1E
+#define RAR   0x1F
