@@ -31,3 +31,20 @@
 #define DCRE  0x1D
 #define MVIE  0x1E
 #define RAR   0x1F
+
+#define NOP20 0x20
+#define LXIH  0x21
+#define SHLD  0x22
+#define INXH  0x23
+#define INRH  0x24
+#define DCRH  0x25
+#define MVIH  0x26
+#define DAA   0x27
+#define NOP28 0x28
+#define DADH  0x29
+#define LHLD  0x2A
+#define DCXH  0x2B
+#define INRL  0x2C
+#define DCRL  0x2D
+#define MVIL  0x2E
+#define CMA   0x2F

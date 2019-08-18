@@ -5,7 +5,7 @@ STATE *state;
 int main(int argc, char **argv){
 	state = init();
 
-	state->MEM[0] = RAR;
+	state->MEM[0] = CMA;
 
 	for (int i = 0; i < 1; i++){
 		state->PC += emulate();
@@ -189,6 +189,83 @@ int emulate(){
 			state->A = alu(CARRY, state->A, 0x00, RAR);
 			break;
 		}
+
+		// 0x20 - 0x2F
+		case NOP20: {
+			break;
+		}
+		case LXIH: {
+			state->H = state->MEM[state->PC + 2];
+			state->L = state->MEM[state->PC + 1];
+			return 3;
+		}
+		case SHLD: {
+			unsigned short adr = (state->MEM[state->PC + 2] << 8) | state->MEM[state->PC + 1];
+			state->MEM[adr] = state->L;
+			state->MEM[adr + 1] = state->H;
+			return 3;
+		}
+		case INXH: {
+			unsigned short v = (state->H << 8) | state->L;
+			v++;
+			state->H = v >> 8;
+			state->L = v;
+			break;
+		}
+		case INRH: {
+			state->H = alu(SZAP, state->H, 0x01, ADD);
+			break;
+		}
+		case DCRH: {
+			state->H = alu(SZAP, state->H, 0x01, SUB);
+			break;
+		}
+		case MVIH: {
+			state->H = state->MEM[state->PC + 1];
+			return 2;
+		}
+		case DAA: {
+			state->A = alu(SZAPC, state->A, 0x00, DAA);
+			break;
+		}
+		case NOP28: {
+			break;
+		}
+		case DADH: {
+			unsigned short v = alu(CARRY, state->H, state->L, DAD);
+			state->H = v >> 8;
+			state->L = v;
+			break;
+		}
+		case LHLD: {
+			unsigned short adr = (state->MEM[state->PC + 2] << 8) | state->MEM[state->PC + 1];
+			state->L = state->MEM[adr];
+			state->H = state->MEM[adr + 1];
+			return 3;
+		}
+		case DCXH: {
+			unsigned short v = (state->H << 8) | state->L;
+			v--;
+			state->H = v >> 8;
+			state->L = v;
+			break;
+		}
+		case INRL: {
+			state->L = alu(SZAP, state->L, 0x01, ADD);
+			break;
+		}
+		case DCRL: {
+			state->L = alu(SZAP, state->L, 0x01, SUB);
+			break;
+		}
+		case MVIL: {
+			state->L = state->MEM[state->PC + 1];
+			return 2;
+		}
+		case CMA: {
+			state->A = ~(state->A);
+			break;
+		}
 	}
 
 	return 1;
@@ -233,6 +310,20 @@ unsigned short alu(unsigned char flags, unsigned char a, unsigned char b, unsign
 		full |= (state->F & CARRY) << 8;
 		full |= (full & 0x01) << 9;
 		full = full >> 1;
+	}
+	else if (op == DAA){
+		full = a + b;
+		half = (a + b) & 0x0F;
+		
+		if (half > 0x09 || (flags & AUX)){
+			full = full + 0x06;
+			half = half + 0x06;
+		}
+
+		full &= ~0x0100;
+
+		if ((full >> 4) > 0x09 || (flags & CARRY))
+			full = full + 0x60;
 	}
 
 	//Carry Bit
