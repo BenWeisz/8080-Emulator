@@ -5,13 +5,13 @@ STATE *state;
 int main(int argc, char **argv){
 	state = init();
 
-	state->MEM[0] = CMA;
+	state->MEM[0] =	CMC;
 
 	for (int i = 0; i < 1; i++){
 		state->PC += emulate();
 	}
 
-	printf("Flags: %d, %d\n", state->F, state->A);
+	printf("Flags: %xd\n", state->F);
 
 	return 0;
 }
@@ -37,16 +37,16 @@ STATE *init(){
 
 int emulate(){
 	unsigned char *op = &(state->MEM[state->PC]);
-	
+
 	switch(*op){
 		// 0x00 - 0x0F
 		case NOP00: {
 			break;
-		} 
+		}
 		case LXIB: {
 			state->B = state->MEM[state->PC + 2];
 			state->C = state->MEM[state->PC + 1];
-			return 3;	
+			return 3;
 		}
 		case STAXB: {
 			unsigned short adr = (state->B << 8) | state->C;
@@ -57,7 +57,7 @@ int emulate(){
 			unsigned short v = (state->B << 8) | state->C;
 			v++;
 			state->B = (v >> 8);
-			state->C = v & 0x00FF;	
+			state->C = v & 0x00FF;
 			break;
 		}
 		case INRB: {
@@ -95,7 +95,7 @@ int emulate(){
 			v--;
 			state->B = v >> 8;
 			state->C = v;
-			break; 
+			break;
 		}
 		case INRC: {
 			state->C = alu(SZAP, state->C, 0x01, ADD);
@@ -134,7 +134,7 @@ int emulate(){
 			v++;
 			state->D = v >> 8;
 			state->E = v;
-			break;  
+			break;
 		}
 		case INRD: {
 			state->D = alu(SZAP, state->D, 0x01, ADD);
@@ -266,6 +266,411 @@ int emulate(){
 			state->A = ~(state->A);
 			break;
 		}
+
+		// 0x30 - 0x3F
+		case NOP30: {
+			break;
+		}
+		case LXISP: {
+			unsigned short v = (state->MEM[state->PC + 2] << 8) | state->MEM[state->PC + 1];
+			state->SP = v;
+			return 3;
+		}
+		case STA: {
+			unsigned short adr = (state->MEM[state->PC + 2] << 8) | state->MEM[state->PC + 1];
+			state->MEM[adr] = state->A;
+			return 3;
+		}
+		case INXSP: {
+			state->SP = state->SP + 1;
+			break;
+		}
+		case INRM: {
+			unsigned short adr = state->H << 8 | state->L;
+			state->MEM[adr] = alu(SZAP, state->MEM[adr], 0x01, ADD);
+			break;
+		}
+		case DCRM: {
+			unsigned short adr = state->H << 8 | state->L;
+			state->MEM[adr] = alu(SZAP, state->MEM[adr], 0x01, SUB);
+			break;
+		}
+		case MVIM: {
+			unsigned short adr = state->H << 8 | state->L;
+			state->MEM[adr] = state->MEM[state->PC + 1];
+			return 2;
+		}
+		case STC: {
+			state->F |= CARRY;
+			break;
+		}
+		case NOP38: {
+			break;
+		}
+		case DADSP: {
+			unsigned short v = alu(CARRY, state->SP >> 8, state->SP, DAD);
+			state->H = v >> 8;
+			state->L = v;
+			break;
+		}
+		case LDA: {
+			unsigned short adr = (state->MEM[state->PC + 2] << 8) | state->MEM[state->PC + 1];
+			state->A = state->MEM[adr];
+			return 3;
+		}
+		case DCXSP: {
+			state->SP--;
+			break;
+		}
+		case INRA: {
+			state->A = alu(SZAP, state->A, 0x01, ADD);
+			break;
+		}
+		case DCRA: {
+			state->A = alu(SZAP, state->A, 0x01, SUB);
+			break;
+		}
+		case MVIA: {
+			state->A = state->MEM[state->PC + 1];
+			return 2;
+		}
+		case CMC: {
+			state->F ^= CARRY;
+			break;
+		}
+
+		// 0x40 - 0x4F
+		case MOVBB: {
+			break;
+		}
+		case MOVBC: {
+			state->B = state->C;
+			break;
+		}
+		case MOVBD: {
+			state->B = state->D;
+			break;
+		}
+		case MOVBE: {
+			state->B = state->E;
+			break;
+		}
+		case MOVBH: {
+			state->B = state->H;
+			break;
+		}
+		case MOVBL: {
+			state->B = state->L;
+			break;
+		}
+		case MOVBM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->B = state->MEM[adr];
+			break;
+		}
+		case MOVBA: {
+			state->B = state->A;
+			break;
+		}
+		case MOVCB: {
+			state->C = state->B;
+			break;
+		}
+		case MOVCC: {
+			break;
+		}
+		case MOVCD: {
+			state->C = state->D;
+			break;
+		}
+		case MOVCE: {
+			state->C = state->E;
+			break;
+		}
+		case MOVCH: {
+			state->C = state->H;
+			break;
+		}
+		case MOVCL: {
+			state->C = state->L;
+			break;
+		}
+		case MOVCM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->C = state->MEM[adr];
+			break;
+		}
+		case MOVCA: {
+			state->C = state->A;
+			break;
+		}
+
+		// 0x50 - 0x5F
+		case MOVDB: {
+			state->D = state->B;
+			break;
+		}
+		case MOVDC: {
+			state->D = state->C;
+			break;
+		}
+		case MOVDD: {
+			break;
+		}
+		case MOVDE: {
+			state->D = state->E;
+			break;
+		}
+		case MOVDH: {
+			state->D = state->H;
+			break;
+		}
+		case MOVDL: {
+			state->D = state->L;
+			break;
+		}
+		case MOVDM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->D = state->MEM[adr];
+			break;
+		}
+		case MOVDA: {
+			state->D = state->A;
+			break;
+		}
+		case MOVEB: {
+			state->E = state->B;
+			break;
+		}
+		case MOVEC: {
+			state->E = state->C;
+			break;
+		}
+		case MOVED: {
+			state->E = state->D;
+			break;
+		}
+		case MOVEE: {
+			break;
+		}
+		case MOVEH: {
+			state->E = state->H;
+			break;
+		}
+		case MOVEL: {
+			state->E = state->L;
+			break;
+		}
+		case MOVEM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->E = state->MEM[adr];
+			break;
+		}
+		case MOVEA: {
+			state->E = state->A;
+			break;
+		}
+
+		// 0x60 - 0x6F
+		case MOVHB: {
+			state->H = state->B;
+			break;
+		}
+		case MOVHC: {
+			state->H = state->C;
+			break;
+		}
+		case MOVHD: {
+			state->H = state->D;
+			break;
+		}
+		case MOVHE: {
+			state->H = state->E;
+			break;
+		}
+		case MOVHH: {
+			break;
+		}
+		case MOVHL: {
+			state->H = state->L;
+			break;
+		}
+		case MOVHM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->H = state->MEM[adr];
+			break;
+		}
+		case MOVHA: {
+			state->H = state->A;
+			break;
+		}
+		case MOVLB: {
+			state->L = state->B;
+			break;
+		}
+		case MOVLC: {
+			state->L = state->C;
+			break;
+		}
+		case MOVLD: {
+			state->L = state->D;
+			break;
+		}
+		case MOVLE: {
+			state->L = state->E;
+			break;;
+		}
+		case MOVLH: {
+			state->L = state->H;
+			break;
+		}
+		case MOVLL: {
+				break;
+		}
+		case MOVLM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->L = state->MEM[adr];
+			break;
+		}
+		case MOVLA: {
+			state->L = state->A;
+			break;
+		}
+
+		// 0x70 - 0x7F
+		case MOVMB: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->B;
+			break;
+		}
+		case MOVMC: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->C;
+			break;
+		}
+		case MOVMD: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->D;
+			break;
+		}
+		case MOVME: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->E;
+			break;
+		}
+		case MOVMH: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->H;
+			break;
+		}
+		case MOVML: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->MEM[adr] = state->L;
+			break;
+		}
+		case HLT: {
+			return -1;
+		}
+		case MOVAB: {
+			state->A = state->B;
+			break;
+		}
+		case MOVAC: {
+			state->A = state->C;
+			break;
+		}
+		case MOVAD: {
+			state->A = state->D;
+			break;
+		}
+		case MOVAE: {
+			state->A = state->E;
+			break;
+		}
+		case MOVAH: {
+			state->A = state->H;
+			break;
+		}
+		case MOVAL: {
+			state->A = state->L;
+			break;
+		}
+		case MOVAM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->A = state->MEM[adr];
+			break;
+		}
+		case MOVAA{
+			break;
+		}
+
+		// 0x80 - 0x8F
+		case ADDB: {
+			state->A = alu(SZAPC, state->A, state->B, ADD);
+			break;
+		}
+		case ADDC: {
+			state->A = alu(SZAPC, state->A, state->C, ADD);
+			break;
+		}
+		case ADDD: {
+			state->A = alu(SZAPC, state->A, state->D, ADD);
+			break;
+		}
+		case ADDE: {
+			state->A = alu(SZAPC, state->A, state->E, ADD);
+			break;
+		}
+		case ADDH: {
+			state->A = alu(SZAPC, state->A, state->H, ADD);
+			break;
+		}
+		case ADDL: {
+			state->A = alu(SZAPC, state->A, state->L:, ADD);
+			break;
+		}
+		case ADDM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->A = alu(SZAPC, state->A, state->MEM[adr], ADD);
+			break;
+		}
+		case ADDA: {
+			state->A = alu(SZAPC, state->A, state->A, ADD);
+			break;
+		}
+		case ADCB: {
+			state->A = alu(SZAPC, state->A, state->B + (state->F & CARRY), ADD);
+			break;
+		}
+		case ADCC: {
+			state->A = alu(SZAPC, state->A, state->C + (state->F & CARRY), ADD);
+			break;
+		}
+		case ADCD: {
+			state->A = alu(SZAPC, state->A, state->D + (state->F & CARRY), ADD);
+			break;
+		}
+		case ADCE: {
+			state->A = alu(SZAPC, state->A, state->E + (state->F & CARRY), ADD);
+			break;
+		}
+		case ADCH: {
+			state->A = alu(SZAPC, state->A, state->H + (state->F & CARRY), ADD);
+			break;
+		}
+		case ADCL: {
+			state->A = alu(SZAPC, state->A, state->L + (state->F & CARRY), ADD);
+			break;
+		}
+		case ADCM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->A = alu(SZAPC, state->A, state->MEM[adr] + (state->F & CARRY), ADD);
+			break;
+		}
+		case ADCA: {
+			state->A = alu(SZAPC, state->A, state->A + (state->F & CARRY), ADD);
+			break;
+		}
 	}
 
 	return 1;
@@ -274,7 +679,7 @@ int emulate(){
 unsigned short alu(unsigned char flags, unsigned char a, unsigned char b, unsigned char op){
 	unsigned int full = 0x00000000;
 	unsigned char half = 0x00;
-	
+
 	if (op == ADD){
 		full = a + b;
 		half = (a & 0x0F) + (b & 0x0F);
@@ -314,7 +719,7 @@ unsigned short alu(unsigned char flags, unsigned char a, unsigned char b, unsign
 	else if (op == DAA){
 		full = a + b;
 		half = (a + b) & 0x0F;
-		
+
 		if (half > 0x09 || (flags & AUX)){
 			full = full + 0x06;
 			half = half + 0x06;
@@ -363,7 +768,7 @@ unsigned short alu(unsigned char flags, unsigned char a, unsigned char b, unsign
 	if (flags & AUX){
 		if (((half & AUX) >> 4) == 0x01)
 			state->F |= AUX;
-		else 
+		else
 			state->F &= ~AUX;
 	}
 
