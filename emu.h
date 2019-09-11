@@ -19,6 +19,8 @@
 #define SUB 0x90
 #define DAD 0x09
 #define DCR 0x0D
+#define AND 0xA0
+#define XRA 0xA8
 
 typedef struct state {
 	unsigned char A, B, C, D, E, H, L, F;

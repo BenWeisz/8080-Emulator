@@ -739,6 +739,74 @@ int emulate(){
 			state->A = alu(SZAPC, state->A, state->A + (state->F & CARRY), SUB);
 			break;
 		}
+
+		// 0xA0 - 0xAF
+		case ANAB: {
+			state->A = alu(SZAPC, state->A, state->B, AND);
+			break;
+		}
+		case ANAC: {
+			state->A = alu(SZAPC, state->A, state->C, AND);
+			break;
+		}
+		case ANAD: {
+			state->A = alu(SZAPC, state->A, state->D, AND);
+			break;		
+		}
+		case ANAE: {
+			state->A = alu(SZAPC, state->A, state->E, AND);
+			break;
+		}
+		case ANAH: {
+			state->A = alu(SZAPC, state->A, state->H, AND);
+			break;		
+		}
+		case ANAL: {
+			state->A = alu(SZAPC, state->A, state->L, AND);
+			break;
+		}
+		case ANAM: {
+			unsigned short adr = (state->H << 8) | state->L;		
+			state->A = alu(SZAPC, state->A, state->MEM[adr], AND);
+			break;
+		}
+		case ANAA: {
+			state->A = alu(SZAPC, state->A, state->A, AND);
+			break;
+		}
+		case XRAB: {
+			state->A = alu(SZAPC, state->A, state->B, XRA);
+			break;	
+		}
+		case XRAC: {
+			state->A = alu(SZAPC, state->A, state->C, XRA);
+			break;		
+		}
+		case XRAD: {
+			state->A = alu(SZAPC, state->A, state->D, XRA);
+			break;
+		}
+		case XRAE: {
+			state->A = alu(SZAPC, state->A, state->E, XRA);
+			break;
+		}
+		case XRAH: {
+			state->A = alu(SZAPC, state->A, state->H, XRA);
+			break;
+		}
+		case XRAL: {
+			state->A = alu(SZAPC, state->A, state->L, XRA);
+			break;
+		}
+		case XRAM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->A = alu(SZAPC, state->A, state->MEM[adr], XRA);
+			break;
+		}
+		case XRAA: {
+			state->A = alu(SZAPC, state->A, state->A, XRA);
+			break;
+		}
 	}
 
 	return 1;
@@ -797,6 +865,14 @@ unsigned short alu(unsigned char flags, unsigned char a, unsigned char b, unsign
 
 		if ((full >> 4) > 0x09 || (flags & CARRY))
 			full = full + 0x60;
+	}
+	else if (op == AND){
+		full = a & b;
+		half = a & b & 0x0F;
+	}
+	else if (op == XRA){
+		full = a ^ b;
+		half = (a & 0x0F) ^ (a & 0x0F);
 	}
 
 	//Carry Bit

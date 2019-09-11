@@ -167,3 +167,20 @@
 #define SBBL   0x9D
 #define SBBM   0x9E
 #define SBBA   0x9F
+
+#define ANAB   0xA0
+#define ANAC   0xA1
+#define ANAD   0xA2
+#define ANAE   0xA3
+#define ANAH   0xA4
+#define ANAL   0xA5
+#define ANAM   0xA6
+#define ANAA   0xA7
+#define XRAB   0xA8
+#define XRAC   0xA9
+#define XRAD   0xAA
+#define XRAE   0xAB
+#define XRAH   0xAC
+#define XRAL   0xAD
+#define XRAM   0xAE
+#define XRAA   0xAF
