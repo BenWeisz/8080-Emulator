@@ -18,9 +18,10 @@
 #define ADD 0x80
 #define SUB 0x90
 #define DAD 0x09
+#define DCR 0x0D
 
 typedef struct state {
-	unsigned char A, B, C, D, E, H, L, F; 
+	unsigned char A, B, C, D, E, H, L, F;
 	unsigned short PC, SP;
 	unsigned char MEM[65536];
 } STATE;

@@ -5,27 +5,27 @@ STATE *state;
 int main(int argc, char **argv){
 	state = init();
 
-	state->MEM[0] =	CMC;
+	state->MEM[0] =	SBBL;
 
 	for (int i = 0; i < 1; i++){
 		state->PC += emulate();
 	}
 
-	printf("Flags: %xd\n", state->F);
+	printf("Flags: %xd %d\n", state->F, state->A);
 
 	return 0;
 }
 
 STATE *init(){
 	STATE *state = malloc(sizeof(STATE));
-	state->A = 0x00;
+	state->A = 0x04;
 	state->B = 0x00;
 	state->C = 0x00;
 	state->D = 0x00;
 	state->E = 0x00;
 	state->H = 0x00;
-	state->L = 0x00;
-	state->F = 0x00;
+	state->L = 0x02;
+	state->F = 0x01;
 
 	state->PC = 0x0000;
 	state->SP = 0x0000;
@@ -65,7 +65,7 @@ int emulate(){
 			break;
 		}
 		case DCRB: {
-			state->B = alu(SZAP, state->B, 0x01, SUB);
+			state->B = alu(SZAP, state->B, 0x01, DCR);
 			break;
 		}
 		case MVIB: {
@@ -102,7 +102,7 @@ int emulate(){
 			break;
 		}
 		case DCRC: {
-			state->C = alu(SZAP, state->C, 0x01, SUB);
+			state->C = alu(SZAP, state->C, 0x01, DCR);
 			break;
 		}
 		case MVIC: {
@@ -141,7 +141,7 @@ int emulate(){
 			break;
 		}
 		case DCRD: {
-			state->D = alu(SZAP, state->D, 0x01, SUB);
+			state->D = alu(SZAP, state->D, 0x01, DCR);
 			break;
 		}
 		case MVID: {
@@ -178,7 +178,7 @@ int emulate(){
 			break;
 		}
 		case DCRE: {
-			state->E = alu(SZAP, state->E, 0x01, SUB);
+			state->E = alu(SZAP, state->E, 0x01, DCR);
 			break;
 		}
 		case MVIE: {
@@ -217,7 +217,7 @@ int emulate(){
 			break;
 		}
 		case DCRH: {
-			state->H = alu(SZAP, state->H, 0x01, SUB);
+			state->H = alu(SZAP, state->H, 0x01, DCR);
 			break;
 		}
 		case MVIH: {
@@ -255,7 +255,7 @@ int emulate(){
 			break;
 		}
 		case DCRL: {
-			state->L = alu(SZAP, state->L, 0x01, SUB);
+			state->L = alu(SZAP, state->L, 0x01, DCR);
 			break;
 		}
 		case MVIL: {
@@ -292,7 +292,7 @@ int emulate(){
 		}
 		case DCRM: {
 			unsigned short adr = state->H << 8 | state->L;
-			state->MEM[adr] = alu(SZAP, state->MEM[adr], 0x01, SUB);
+			state->MEM[adr] = alu(SZAP, state->MEM[adr], 0x01, DCR);
 			break;
 		}
 		case MVIM: {
@@ -327,7 +327,7 @@ int emulate(){
 			break;
 		}
 		case DCRA: {
-			state->A = alu(SZAP, state->A, 0x01, SUB);
+			state->A = alu(SZAP, state->A, 0x01, DCR);
 			break;
 		}
 		case MVIA: {
@@ -600,7 +600,7 @@ int emulate(){
 			state->A = state->MEM[adr];
 			break;
 		}
-		case MOVAA{
+		case MOVAA: {
 			break;
 		}
 
@@ -626,7 +626,7 @@ int emulate(){
 			break;
 		}
 		case ADDL: {
-			state->A = alu(SZAPC, state->A, state->L:, ADD);
+			state->A = alu(SZAPC, state->A, state->L, ADD);
 			break;
 		}
 		case ADDM: {
@@ -671,6 +671,74 @@ int emulate(){
 			state->A = alu(SZAPC, state->A, state->A + (state->F & CARRY), ADD);
 			break;
 		}
+
+		// 0x90 - 0x9F
+		case SUBB: {
+			state->A = alu(SZAPC, state->A, state->B, SUB);
+			break;
+		}
+		case SUBC: {
+			state->A = alu(SZAPC, state->A, state->C, SUB);
+			break;
+		}
+		case SUBD: {
+			state->A = alu(SZAPC, state->A, state->D, SUB);
+			break;
+		}
+		case SUBE: {
+			state->A = alu(SZAPC, state->A, state->E, SUB);
+			break;
+		}
+		case SUBH: {
+			state->A = alu(SZAPC, state->A, state->H, SUB);
+			break;
+		}
+		case SUBL: {
+			state->A = alu(SZAPC, state->A, state->L, SUB);
+			break;
+		}
+		case SUBM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->A = alu(SZAPC, state->A, state->MEM[adr], SUB);
+			break;
+		}
+		case SUBA: {
+			state->A = alu(SZAPC, state->A, state->A, SUB);
+			break;
+		}
+		case SBBB: {
+			state->A = alu(SZAPC, state->A, state->B + (state->F & CARRY), SUB);
+			break;
+		}
+		case SBBC: {
+			state->A = alu(SZAPC, state->A, state->C + (state->F & CARRY), SUB);
+			break;
+		}
+		case SBBD: {
+			state->A = alu(SZAPC, state->A, state->D + (state->F & CARRY), SUB);
+			break;
+		}
+		case SBBE: {
+			state->A = alu(SZAPC, state->A, state->E + (state->F & CARRY), SUB);
+			break;
+		}
+		case SBBH: {
+			state->A = alu(SZAPC, state->A, state->H + (state->F & CARRY), SUB);
+			break;
+		}
+		case SBBL: {
+			state->A = alu(SZAPC, state->A, state->L + (state->F & CARRY), SUB);
+			break;
+		}
+		case SBBM: {
+			unsigned short adr = (state->H << 8) | state->L;
+			state->A = alu(SZAPC, state->A, state->MEM[adr] + (state->F & CARRY), SUB);
+			break;
+		}
+		case SBBA: {
+			state->A = alu(SZAPC, state->A, state->A + (state->F & CARRY), SUB);
+			break;
+		}
 	}
 
 	return 1;
@@ -684,7 +752,7 @@ unsigned short alu(unsigned char flags, unsigned char a, unsigned char b, unsign
 		full = a + b;
 		half = (a & 0x0F) + (b & 0x0F);
 	}
-	else if (op == SUB){
+	else if (op == DCR || op == SUB){
 		full = a + ((b ^ 0xFF) + 1);
 		half = (a & 0x0F) + (((b ^ 0xFF) + 1) & 0x0F);
 	}
@@ -734,10 +802,18 @@ unsigned short alu(unsigned char flags, unsigned char a, unsigned char b, unsign
 	//Carry Bit
 	if (flags & CARRY){
 		if (op != DAD){
-			if ((full & 0x0100) >> 8 == 0x01)
-				state->F |= CARRY;
-			else
-				state->F &= ~CARRY;
+			if (op != SUB){
+				if ((full & 0x0100) >> 8 == 0x01)
+					state->F |= CARRY;
+				else
+					state->F &= ~CARRY;
+			}
+			else {
+				if ((full & 0x0100) >> 8 == 0x00)
+					state->F |= CARRY;
+				else
+					state->F &= ~CARRY;
+			}
 		}
 		else {
 			if ((full & 0x00010000) >> 16 == 0x01)

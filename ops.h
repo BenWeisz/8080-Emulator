@@ -124,7 +124,7 @@
 #define MOVMH  0x74
 #define MOVML  0x75
 #define HLT    0x76
-#define MOVAB  0x77
+#define MOVMA  0x77
 #define MOVAB  0x78
 #define MOVAC  0x79
 #define MOVAD  0x7A
@@ -150,3 +150,20 @@
 #define ADCL   0x8D
 #define ADCM   0x8E
 #define ADCA   0x8F
+
+#define SUBB   0x90
+#define SUBC   0x91
+#define SUBD   0x92
+#define SUBE   0x93
+#define SUBH   0x94
+#define SUBL   0x95
+#define SUBM   0x96
+#define SUBA   0x97
+#define SBBB   0x98
+#define SBBC   0x99
+#define SBBD   0x9A
+#define SBBE   0x9B
+#define SBBH   0x9C
+#define SBBL   0x9D
+#define SBBM   0x9E
+#define SBBA   0x9F
